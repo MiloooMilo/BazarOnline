@@ -1,0 +1,39 @@
+{
+    "productlist": [
+      {
+        "id": 1,
+        "name": "Smartphone Samsung Galaxy S",
+        "price": 499.99,
+        "short_description": "Powerful smartphone with quad-camera and large display.",
+        "image_url": "https://cdn.pixabay.com/photo/2017/08/11/14/19/honor-2631271_1280.jpg"
+      },
+      {
+        "id": 2,
+        "name": "Laptop Lenovo X",
+        "price": 899.99,
+        "short_description": "High-performance laptop with Intel Core i7 processor and NVIDIA graphics card.",
+        "image_url": "https://cdn.pixabay.com/photo/2021/11/05/11/08/laptop-6771039_1280.jpg"
+      },
+      {
+        "id": 3,
+        "name": "Smartwatch XY",
+        "price": 199.99,
+        "short_description": "Stylish smartwatch with heart rate monitor and waterproof case.",
+        "image_url": "https://cdn.pixabay.com/photo/2020/02/10/09/18/calendar-4835848_1280.jpg"
+      },
+      {
+        "id": 4,
+        "name": "Bluetooth Speaker GHI",
+        "price": 79.99,
+        "short_description": "Compact Bluetooth speaker with powerful sound and long battery life.",
+        "image_url": "https://cdn.pixabay.com/photo/2016/11/14/04/42/techland-1822630_1280.jpg"
+      },
+      {
+        "id": 5,
+        "name": "Sony PlayStation",
+        "price": 399.99,
+        "short_description": "High-performance gaming console for demanding gamers with HDR support.",
+        "image_url": "https://cdn.pixabay.com/photo/2017/04/04/18/14/video-game-console-2202634_1280.jpg"
+      }
+    ]
+    }
