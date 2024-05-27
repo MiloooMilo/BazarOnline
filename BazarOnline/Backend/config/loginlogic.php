@@ -3,6 +3,8 @@ class LoginLogic
 {
     private $db;
 
+    
+
     public function __construct()
     {
         // Verwenden Sie die Methode connectToDatabase, um eine Verbindung zur Datenbank herzustellen
