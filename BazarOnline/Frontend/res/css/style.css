@@ -39,9 +39,12 @@ li {
 }
 
 .product-image img {
-    width: 100%;
-    height: auto;
-    margin-bottom: 10px;
+  width: 100%;
+  height: auto;
+  max-width: 100%; /* Set to desired size */
+  max-height: 200px; /* Set to desired size */
+  object-fit: cover; /* This will ensure the image covers the container without stretching */
+  margin-bottom: 10px;
 }
 
 .product-details {
