@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if ($stmt->execute()) {
         $_SESSION['username'] = $username;
         $_SESSION['email'] = $email;
-        header("location: login.php"); // Pfad zur Login-Seite
+        header("location: ../../Frontend/sites/login.html"); // Pfad zur Login-Seite
         exit;
     } else {
         echo "Fehler bei der Registrierung: " . $conn->error;
