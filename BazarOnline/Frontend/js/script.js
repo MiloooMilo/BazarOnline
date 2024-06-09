@@ -22,6 +22,10 @@ $(document).ready(function() {
         var selectedCategory = $(this).data('category');
         filterProducts(selectedCategory);
     });
+    $(document).on('click', '.add-button', function() {
+        var productId = $(this).data('product-id');
+        addProductToCart(productId);
+    });
 });
 
 var allProducts = [];
@@ -69,45 +73,64 @@ function filterProducts(category) {
     displayProducts(filteredProducts);
 }
 
-$(document).on('click', '.add-button', function() {
-    var productId = $(this).data('product-id');
-    addProductToCart(productId);
-});
-
-var cart = {};
-
 function addProductToCart(productId) {
-    var product = cart[productId] || {
-        quantity: 0,
-        details: $('#output-area').find('button[data-product-id="' + productId + '"]').closest('li').clone().children().remove().end().text().trim(),
-        price: parseFloat($('#output-area').find('button[data-product-id="' + productId + '"]').closest('li').text().match(/(\d+(\.\d+)?)/)[0])
-    };
-    product.quantity++;
-    cart[productId] = product;
-    updateCart();
+    var product = allProducts.find(function(p) {
+        return p.id === productId;
+    });
+
+    if (product) {
+        $.ajax({
+            type: "POST",
+            url: "../../Backend/config/add_to_cart.php", // The server script to handle adding to cart
+            data: { product: product },
+            success: function(response) {
+                updateCart();
+                console.log("Product added to cart:", response);
+            },
+            error: function() {
+                console.error("Failed to add product to cart");
+            }
+        });
+    }
 }
 
 function updateCart() {
-    var cartArea = $('#cart-area');
-    cartArea.empty();
-    var total = 0;
-    $.each(cart, function(id, product) {
-        var lineTotal = product.quantity * product.price;
-        total += lineTotal;
-        cartArea.append('<li>' + product.details + ' x ' + product.quantity + ' = ' + lineTotal.toFixed(2) + '€ <a href="#" class="remove" data-product-id="' + id + '">' + (product.quantity > 1 ? 'decrease' : 'remove') + '</a></li>');
+    $.ajax({
+        type: "GET",
+        url: "../../Backend/config/get_cart.php", // The server script to get the cart contents
+        dataType: "json",
+        success: function(response) {
+            var cartArea = $('#cart-area');
+            cartArea.empty();
+            var total = 0;
+            response.forEach(function(product) {
+                var lineTotal = product.quantity * product.price;
+                total += lineTotal;
+                cartArea.append('<li>' + product.name + ' x ' + product.quantity + ' = ' + lineTotal.toFixed(2) + '€ <a href="#" class="remove" data-product-id="' + product.id + '">' + (product.quantity > 1 ? 'decrease' : 'remove') + '</a></li>');
+            });
+            cartArea.append('<li>Total: ' + total.toFixed(2) + '€</li>');
+        },
+        error: function() {
+            console.error("Failed to get cart contents");
+        }
     });
-    cartArea.append('<li>Total: ' + total.toFixed(2) + '€</li>');
 }
 
 $(document).on('click', '.remove', function(e) {
     e.preventDefault();
     var productId = $(this).data('product-id');
-    if (cart[productId].quantity > 1) {
-        cart[productId].quantity--;
-    } else {
-        delete cart[productId];
-    }
-    updateCart();
+    $.ajax({
+        type: "POST",
+        url: "../../Backend/config/remove_from_cart.php", // The server script to handle removing from cart
+        data: { productId: productId },
+        success: function(response) {
+            updateCart();
+            console.log("Product removed from cart:", response);
+        },
+        error: function() {
+            console.error("Failed to remove product from cart");
+        }
+    });
 });
 
 function displayError() {
