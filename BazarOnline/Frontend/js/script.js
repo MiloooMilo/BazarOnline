@@ -8,9 +8,6 @@ function validateForm() {
     // Weitere Validierungen hier hinzufügen
     return true;
 }
-function valideLogin() {
-    var user = document.forms["login"]["username"].value;
-}
 
 //Warenkorblogik
 

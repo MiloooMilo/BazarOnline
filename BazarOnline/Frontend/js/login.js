@@ -1,45 +1,38 @@
-$(document).ready(function () {
-    const loginForm = $('#loginForm');
-    const errorMessageDiv = $('#errorMessage');
+function loginprocess(event) {
+    event.preventDefault(); // Verhindert das Standardverhalten des Formulars
 
-    // Erstelle ein Element für Erfolgsmeldungen
-    const successMessageDiv = $('<div></div>').addClass('alert alert-success').hide();
-    loginForm.append(successMessageDiv);
+    // Erfasst die Formulardaten
+    var usernameEmail = document.getElementById("floatingInput").value;
+    var password = document.getElementById("floatingPassword").value;
 
-    loginForm.on('submit', function (e) {
-        e.preventDefault(); // Verhindert das Standardverhalten des Formulars
+    // Sammelt die Daten in einem Objekt
+    var formData = {
+        username_email: usernameEmail,
+        passwort: password
+    };
 
-        const formData = new FormData(loginForm[0]);
-
-        // Senden der Daten mit AJAX
-        $.ajax({
-            url: '../../Backend/config/loginfuntion.php', // Ändern Sie dies zu Ihrem Server-Endpunkt
-            type: 'POST',
-            data: formData,
-            processData: false,  // jQuery soll nicht versuchen, die Daten zu verarbeiten
-            contentType: false,  // jQuery soll nicht versuchen, den Content-Type zu setzen
-            success: function (data) {
-                if (data.success) {
-                    successMessageDiv.text('Sie haben sich erfolgreich eingeloggt.').show();
-                    setTimeout(function() {
-                        window.location.href = '../views/index.html'; // Weiterleitung nach 3 Sekunden
-                    }, 3000);
-                } else {
-                    errorMessageDiv.text('Login fehlgeschlagen: ' + data.message).show(); // Änderung hier
-                    successMessageDiv.hide();
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Fehler bei der Anfrage:', error);
-                let errorMessage = 'Ein Fehler ist aufgetreten, bitte versuchen Sie es später erneut.';
-                if (xhr.status === 500) {
-                    errorMessage = 'Serverfehler, bitte kontaktieren Sie den Administrator.';
-                } else if (xhr.status === 404) {
-                    errorMessage = 'Dienst nicht gefunden.';
-                }
-                errorMessageDiv.text(errorMessage).show();
-                successMessageDiv.hide();
+    // JSON-Daten per AJAX senden
+    $.ajax({
+        type: "POST",
+        url: "../../Backend/logic/login.php", // Pfad zum PHP-Login-Skript
+        data: formData,
+        dataType: "json",
+        success: function(response) {
+            if (response.success) {
+                // Bei erfolgreicher Anmeldung zur Erfolgsseite weiterleiten
+                window.location.href = "../../Frontend/sites/index.html"; // Erfolgsseite
+                console.log("Eingeloggt als: ", response.user);
+            } else {
+                // Fehlermeldung anzeigen
+                alert(response.message);
             }
-        });
+        },
+        error: function(xhr, status, error) {
+            console.error('Fehler:', error);
+            console.error('Details:', xhr.responseText);
+            alert("Es gab einen Fehler bei der Anmeldung. Bitte versuchen Sie es erneut.");
+        }
     });
-});
+
+    return false; // Verhindert die Standardaktion des Formulars
+}
