@@ -1,53 +1,41 @@
 <?php
 require_once("../config/dbaccess.php");
+header('Content-Type: application/json');
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == 'POST') {
-    
-    $anrede = $_POST['anrede'];
-    $vorname = $_POST['vorname'];
-    $nachname = $_POST['nachname'];
-    $adresse = $_POST['adresse'];
-    $plz = $_POST['plz'];
-    $ort = $_POST['ort'];
-    $email = $_POST['email'];
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $passwort = $_POST['passwort'];
-    $rolle = 'user';
-    $zahlungsinformation = $_POST['zahlungsinformation'];
+    // JSON-Daten einlesen
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige Daten erhalten.']);
+        exit;
+    }
 
-    if (empty($anrede)) {
-        die("Das Feld 'Anrede' muss ausgefüllt sein.");
+    // Debug-Ausgabe zur Überprüfung der empfangenen Daten
+    error_log("Empfangene Daten: " . print_r($data, true));
+
+    // Daten aus dem JSON extrahieren
+    $anrede = $data['anrede'] ?? '';
+    $vorname = $data['vorname'] ?? '';
+    $nachname = $data['nachname'] ?? '';
+    $adresse = $data['adresse'] ?? '';
+    $plz = $data['plz'] ?? '';
+    $ort = $data['ort'] ?? '';
+    $email = $data['email'] ?? '';
+    $username = mysqli_real_escape_string($conn, $data['username'] ?? '');
+    $passwort = $data['passwort'] ?? '';
+    $zahlungsinformation = $data['zahlungsinformation'] ?? '';
+    $rolle = 'user';
+
+    // Validierungen
+    if (empty($anrede) || empty($vorname) || empty($nachname) || empty($adresse) || empty($plz) || empty($ort) || empty($email) || empty($username) || empty($passwort) || empty($zahlungsinformation)) {
+        echo json_encode(['success' => false, 'message' => 'Alle Felder müssen ausgefüllt sein.']);
+        exit;
     }
-    if (empty($vorname)) {
-        die("Das Feld 'Vorname' muss ausgefüllt sein.");
-    }
-    if (empty($nachname)) {
-        die("Das Feld 'Nachname' muss ausgefüllt sein.");
-    }
-    if (empty($adresse)) {
-        die("Das Feld 'Adresse' muss ausgefüllt sein.");
-    }
-    if (empty($plz)) {
-        die("Das Feld 'PLZ' muss ausgefüllt sein.");
-    }
-    if (empty($ort)) {
-        die("Das Feld 'Ort' muss ausgefüllt sein.");
-    }
-    if (empty($email)) {
-        die("Das Feld 'E-Mail' muss ausgefüllt sein.");
-    }
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Ungültige E-Mail-Adresse.");
-    }
-    if (empty($username)) {
-        die("Das Feld 'Benutzername' muss ausgefüllt sein.");
-    }
-    if (empty($passwort)) {
-        die("Das Feld 'Passwort' muss ausgefüllt sein.");
-    }
-    if (empty($zahlungsinformation)) {
-        die("Das Feld 'Zahlungsinformation' muss ausgefüllt sein.");
+        echo json_encode(['success' => false, 'message' => 'Ungültige E-Mail-Adresse.']);
+        exit;
     }
 
     // Überprüfen, ob der Benutzername bereits existiert
@@ -55,7 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        die("Der Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.");
+        echo json_encode(['success' => false, 'message' => 'Der Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.']);
+        exit;
     }
 
     // Passwort verschlüsseln
@@ -69,10 +58,9 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if ($stmt->execute()) {
         $_SESSION['username'] = $username;
         $_SESSION['email'] = $email;
-        header("location: ../../Frontend/sites/login.html"); // Pfad zur Login-Seite
-        exit;
+        echo json_encode(['success' => true, 'message' => 'Registrierung erfolgreich!']);
     } else {
-        echo "Fehler bei der Registrierung: " . $conn->error;
+        echo json_encode(['success' => false, 'message' => 'Fehler bei der Registrierung: ' . $conn->error]);
     }
 
     $stmt->close();
