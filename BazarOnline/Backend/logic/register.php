@@ -24,8 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $zahlungsinformation = trim($data['zahlungsinformation']);
 
     // Validierung der Eingabefelder
-    if (empty($anrede) || empty($vorname) || empty($nachname) || empty($adresse) || empty($plz) || empty($ort) || empty($email) || empty($username) || empty($passwort) || empty($zahlungsinformation)) {
-        echo json_encode(['success' => false, 'message' => 'Alle Felder müssen ausgefüllt sein.']);
+    if (empty($anrede) || empty($vorname) || empty($nachname) || empty($adresse) || empty($plz) || empty($ort) || empty($email) || empty($username) || empty($passwort)) {
+        echo json_encode(['success' => false, 'message' => 'Alle markierten Felder müssen ausgefüllt sein.']);
         exit;
     }
 

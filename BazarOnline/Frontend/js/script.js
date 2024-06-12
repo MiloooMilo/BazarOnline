@@ -57,11 +57,11 @@ function displayProducts(products) {
                     <div class="product-name">${product.name}</div>
                     <div class="product-price">${product.price}€</div>
                 </div>
-                <button class="add-button" data-product-id="${product.id}">In den Warenkorb legen</button>
+                <button class="btn btn-primary d-inline-flex align-items-center" type="button" data-product-id="${product.id}">In den Warenkorb legen</button>
             </li>`);
     });
 }
-
+/*button class="btn btn-primary d-inline-flex align-items-center" type="button" */
 function filterProducts(category) {
     console.log("Filtering products for category:", category); // Debugging line
     var filteredProducts = allProducts.filter(function(product) {
