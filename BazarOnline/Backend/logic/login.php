@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // JSON-Daten auslesen
-    $data = $_POST;
+    $data = json_decode(file_get_contents('php://input'), true); // Empfange und dekodiere die JSON-Daten
 
     $username_email = $data['username_email'];
     $passwort = $data['passwort'];
@@ -48,7 +48,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'email' => $user['email'],
                     'anrede' => $user['anrede'],
                     'vorname' => $user['vorname'],
-                    'nachname' => $user['nachname']
+                    'nachname' => $user['nachname'],
+                    'rolle' => $user['rolle']
                 ]
             ]);
         } else {
