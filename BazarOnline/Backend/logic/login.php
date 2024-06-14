@@ -2,11 +2,22 @@
 require_once("../config/dbaccess.php");
 session_start();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username_email = $_POST['username_email'];
-    $passwort = $_POST['passwort'];
+header('Content-Type: application/json');
 
-    // Vorbereitetes Statement, um SQL-Injection zu vermeiden
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // JSON-Daten auslesen
+    $data = json_decode(file_get_contents('php://input'), true); // Empfange und dekodiere die JSON-Daten
+
+    $username_email = $data['username_email'];
+    $passwort = $data['passwort'];
+
+    // Überprüfung, ob die Eingaben leer sind
+    if (empty($username_email) || empty($passwort)) {
+        echo json_encode(['success' => false, 'message' => 'Bitte füllen Sie alle Felder aus.']);
+        exit;
+    }
+
+    // SQL-Abfrage vorbereiten
     if (filter_var($username_email, FILTER_VALIDATE_EMAIL)) {
         // E-Mail-Adresse
         $sql = "SELECT * FROM user WHERE email = ?";
@@ -27,13 +38,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Erfolgreicher Login
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $user['username'];
-            header("location: success_page.php"); // Leite zu einer Erfolgsseite weiter
-            exit;
+
+            // Erfolgsantwort mit Benutzerdaten zurückgeben
+            echo json_encode([
+                'success' => true,
+                'message' => 'Erfolgreich eingeloggt!',
+                'user' => [
+                    'username' => $user['username'],
+                    'email' => $user['email'],
+                    'anrede' => $user['anrede'],
+                    'vorname' => $user['vorname'],
+                    'nachname' => $user['nachname'],
+                    'rolle' => $user['rolle']
+                ]
+            ]);
         } else {
-            echo "Ungültiges Passwort";
+            echo json_encode(['success' => false, 'message' => 'Ungültiges Passwort']);
         }
     } else {
-        echo "Benutzername oder E-Mail-Adresse nicht gefunden";
+        echo json_encode(['success' => false, 'message' => 'Benutzername oder E-Mail-Adresse nicht gefunden']);
     }
 
     $stmt->close();
