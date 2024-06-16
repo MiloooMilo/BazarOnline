@@ -1,82 +1,74 @@
 <?php
+// Verbindung zur Datenbank herstellen
 require_once("../config/dbaccess.php");
 session_start();
 
-if ($_SERVER["REQUEST_METHOD"] == 'POST') {
-    
-    $anrede = $_POST['anrede'];
-    $vorname = $_POST['vorname'];
-    $nachname = $_POST['nachname'];
-    $adresse = $_POST['adresse'];
-    $plz = $_POST['plz'];
-    $ort = $_POST['ort'];
-    $email = $_POST['email'];
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $passwort = $_POST['passwort'];
-    $rolle = 'user';
-    $zahlungsinformation = $_POST['zahlungsinformation'];
+// Setze den Header für JSON-Antworten
+header('Content-Type: application/json');
 
-    if (empty($anrede)) {
-        die("Das Feld 'Anrede' muss ausgefüllt sein.");
+// Überprüfen, ob die Anfrage eine POST-Anfrage ist
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // JSON-Daten auslesen (alternativ können Sie hier auch $_POST verwenden)
+    $data = $_POST;
+
+    // Variablen aus dem POST-Array extrahieren
+    $anrede = trim($data['anrede']);
+    $vorname = trim($data['vorname']);
+    $nachname = trim($data['nachname']);
+    $adresse = trim($data['adresse']);
+    $plz = trim($data['plz']);
+    $ort = trim($data['ort']);
+    $email = trim($data['email']);
+    $username = trim($data['username']);
+    $passwort = $data['passwort'];
+    $zahlungsinformation = trim($data['zahlungsinformation']);
+
+    // Validierung der Eingabefelder
+    if (empty($anrede) || empty($vorname) || empty($nachname) || empty($adresse) || empty($plz) || empty($ort) || empty($email) || empty($username) || empty($passwort)) {
+        echo json_encode(['success' => false, 'message' => 'Alle markierten Felder müssen ausgefüllt sein.']);
+        exit;
     }
-    if (empty($vorname)) {
-        die("Das Feld 'Vorname' muss ausgefüllt sein.");
-    }
-    if (empty($nachname)) {
-        die("Das Feld 'Nachname' muss ausgefüllt sein.");
-    }
-    if (empty($adresse)) {
-        die("Das Feld 'Adresse' muss ausgefüllt sein.");
-    }
-    if (empty($plz)) {
-        die("Das Feld 'PLZ' muss ausgefüllt sein.");
-    }
-    if (empty($ort)) {
-        die("Das Feld 'Ort' muss ausgefüllt sein.");
-    }
-    if (empty($email)) {
-        die("Das Feld 'E-Mail' muss ausgefüllt sein.");
-    }
+
+    // Validierung der E-Mail-Adresse
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Ungültige E-Mail-Adresse.");
-    }
-    if (empty($username)) {
-        die("Das Feld 'Benutzername' muss ausgefüllt sein.");
-    }
-    if (empty($passwort)) {
-        die("Das Feld 'Passwort' muss ausgefüllt sein.");
-    }
-    if (empty($zahlungsinformation)) {
-        die("Das Feld 'Zahlungsinformation' muss ausgefüllt sein.");
+        echo json_encode(['success' => false, 'message' => 'Ungültige E-Mail-Adresse.']);
+        exit;
     }
 
-    // Überprüfen, ob der Benutzername bereits existiert
-    $sql = "SELECT * FROM user WHERE username = '$username'";
-    $result = $conn->query($sql);
+    // Validierung des Benutzernamens (mindestens 3 Zeichen, maximal 20 Zeichen, nur alphanumerisch)
+    if (!preg_match('/^[a-zA-Z0-9]{3,20}$/', $username)) {
+        echo json_encode(['success' => false, 'message' => 'Der Benutzername muss zwischen 3 und 20 Zeichen lang sein und darf nur Buchstaben und Zahlen enthalten.']);
+        exit;
+    }
+
+    // Überprüfen, ob der Benutzername oder die E-Mail-Adresse bereits existiert
+    $sql = "SELECT * FROM user WHERE username = ? OR email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $username, $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
-        die("Der Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.");
+        echo json_encode(['success' => false, 'message' => 'Der Benutzername oder die E-Mail-Adresse ist bereits vergeben.']);
+        exit;
     }
 
     // Passwort verschlüsseln
     $hashedPassword = password_hash($passwort, PASSWORD_DEFAULT);
 
     // Einfügen der Benutzerdaten in die Datenbank
-    $insertSql = "INSERT INTO user (anrede, vorname, nachname, adresse, plz, ort, email, username, passwort, zahlungsinformation, rolle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $insertSql = "INSERT INTO user (anrede, vorname, nachname, adresse, plz, ort, email, username, passwort, zahlungsinformation, rolle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user')";
     $stmt = $conn->prepare($insertSql);
-    $stmt->bind_param("ssssissssss", $anrede, $vorname, $nachname, $adresse, $plz, $ort, $email, $username, $hashedPassword, $zahlungsinformation, $rolle);
+    $stmt->bind_param("ssssisssss", $anrede, $vorname, $nachname, $adresse, $plz, $ort, $email, $username, $hashedPassword, $zahlungsinformation);
 
     if ($stmt->execute()) {
-        $_SESSION['username'] = $username;
-        $_SESSION['email'] = $email;
-        header("location: login.php"); // Pfad zur Login-Seite
-        exit;
+        echo json_encode(['success' => true, 'message' => 'Registrierung erfolgreich!']);
     } else {
-        echo "Fehler bei der Registrierung: " . $conn->error;
+        echo json_encode(['success' => false, 'message' => 'Fehler bei der Registrierung: ' . $conn->error]);
     }
 
+    // Verbindung schließen
     $stmt->close();
+    $conn->close();
 }
-
-$conn->close();
 ?>
