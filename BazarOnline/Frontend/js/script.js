@@ -8,73 +8,101 @@ function validateForm() {
     // Weitere Validierungen hier hinzufügen
     return true;
 }
-// Script zur Produktanzeige und Warenkorblogik
-
 $(document).ready(function() {
     console.log("Document ready - Start lade Header");
-    // Lade den Header und rufe adjustHeader auf, nachdem der Header geladen ist
+
+    // Load the header and call adjustHeader after it's loaded
     $('#header-site').load("header.html", function() {
         console.log("Header geladen, rufe adjustHeader auf");
-        adjustHeader(); // Funktion aufrufen, nachdem header.html geladen wurde
+        adjustHeader();
     });
 
-    // Klick-Event für "In den Warenkorb legen" Button
+    // Event handler for "Add to Cart" button
     $(document).on('click', '.add-button', function() {
         var productId = $(this).data('product-id');
         addProductToCart(productId);
     });
-    
-    $(document).on('click', '.remove, .decrease', function(e) {
+
+    // Event handlers for cart item actions (increase, decrease, remove)
+    $(document).on('click', '.remove, .decrease, .increase', function(e) {
         e.preventDefault();
         var productId = $(this).data('product-id');
-        var action = $(this).hasClass('remove') ? 'remove' : 'decrease';
+        var action = $(this).hasClass('remove') ? 'remove' : $(this).hasClass('decrease') ? 'decrease' : 'increase';
         modifyProductInCart(productId, action);
     });
 
+    // Load products from the backend
+    loadProducts();
+});
+
+function loadProducts() {
     $.ajax({
-        url: '../../Backend/config/show_product.php', // Pfad zur API
+        url: '../../Backend/config/show_product.php', 
         type: 'GET',
         dataType: 'json',
         success: function(data) {
-            console.log(data);
-            var products = data;
-            products.forEach(function(product) {
-                $('#output-area').append('<ul>' + product.name + ' - €' + product.price + '</ul>');
-            });
+            console.log("Products loaded:", data);
+            window.allProducts = data; // Store products in a global variable for later use
+            displayProducts(data);
         },
         error: function(xhr, status, error) {
             console.error('Fehler beim Laden der Daten:', error);
+            displayError();
         }
     });
-});
+}
+
+function displayProducts(data) {
+    var outputArea = $('#output-area');
+    outputArea.empty();
+    data.forEach(function(product) {
+        outputArea.append(
+            `<li class="product-item">
+                <div class="product-image">
+                    <img src="${product.url}" alt="${product.name}" class="product-img">
+                </div>
+                <div class="product-details">
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${product.price}€</div>
+                </div>
+                <button class="btn btn-primary d-inline-flex align-items-center add-button" type="button" data-product-id="${product.id}">In den Warenkorb legen</button>
+            </li>`);
+    });
+}
 
 function addProductToCart(productId) {
-    var product = allProducts.find(function(p) {
+    // Ensure the global variable allProducts is populated
+    if (!window.allProducts) {
+        console.error("Produkte sind noch nicht geladen.");
+        return;
+    }
+
+    var product = window.allProducts.find(function(p) {
         return p.id === productId;
     });
 
     if (product) {
         $.ajax({
             type: "POST",
-            url: "../../Backend/config/add_to_cart.php", // Pfad zum Server-Skript
-            data: { product: JSON.stringify(product) }, // Produktdaten als JSON-String senden
+            url: "../../Backend/config/add_to_cart.php",
+            data: { product: JSON.stringify(product) },
             success: function(response) {
-                console.log("Antwort vom Server:", response);
-                updateCart();
                 console.log("Produkt in den Warenkorb gelegt:", response);
+                updateCart();
             },
-            error: function() {
-                console.error("Fehler beim Hinzufügen des Produkts zum Warenkorb");
+            error: function(xhr, status, error) {
+                console.error("Fehler beim Hinzufügen des Produkts zum Warenkorb:", error);
             }
         });
+    } else {
+        console.error("Produkt nicht gefunden für die ID:", productId);
     }
 }
-
 
 function updateCart() {
     $.ajax({
         type: "GET",
-        url: "../../Backend/config/get_cart.php", // The server script to get the cart contents
+        url: "../../Backend/config/get_cart.php", 
         dataType: "json",
         success: function(response) {
             console.log("Cart contents:", response);
@@ -85,21 +113,28 @@ function updateCart() {
                 var lineTotal = product.quantity * product.price;
                 total += lineTotal;
 
-                var actions = '';
-                if (product.quantity > 1) {
-                    actions = `<a href="#" class="decrease" data-product-id="${product.id}">decrease</a> <a href="#" class="remove" data-product-id="${product.id}">remove</a>`;
-                } else {
-                    actions = `<a href="#" class="remove" data-product-id="${product.id}">remove</a>`;
-                }
+                var actions = `
+                    <a href="#" class="increase" data-product-id="${product.id}"><i class="bi bi-plus-circle"></i></a>
+                    <a href="#" class="decrease" data-product-id="${product.id}"><i class="bi bi-dash-circle"></i></a>
+                    <a href="#" class="remove" data-product-id="${product.id}"><i class="bi bi-trash"></i></a>`;
 
                 cartArea.append(
-                    `<li>
-                        ${product.name} x ${product.quantity} = ${lineTotal.toFixed(2)}€
-                        ${actions}
+                    `<li class="cart-item">
+                        <div class="cart-product-image">
+                            <img src="${product.url}" alt="${product.name}" class="cart-img">
+                        </div>
+                        <div class="cart-product-details">
+                            <div class="cart-product-name">${product.name}</div>
+                            <div class="cart-product-quantity">Quantity: ${product.quantity}</div>
+                            <div class="cart-product-price">${lineTotal.toFixed(2)}€</div>
+                        </div>
+                        <div class="cart-product-actions">
+                            ${actions}
+                        </div>
                     </li>`
                 );
             });
-            cartArea.append('<li>Total: ' + total.toFixed(2) + '€</li>');
+            $('#cart-total').html('<strong>Total: ' + total.toFixed(2) + '€</strong>');
         },
         error: function(xhr, status, error) {
             console.error("Failed to get cart contents", xhr.responseText);
@@ -128,3 +163,4 @@ function displayError() {
     outputArea.html('Failed to get data');
     outputArea.addClass('error-message');
 }
+

@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once("dbaccess.php");
+session_start();
 
 $sql = "SELECT * FROM product";
 $result = $conn->query($sql);
