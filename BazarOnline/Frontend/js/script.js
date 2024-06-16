@@ -18,13 +18,6 @@ $(document).ready(function() {
         adjustHeader(); // Funktion aufrufen, nachdem header.html geladen wurde
     });
 
-    // Produkte laden und anzeigen
-    loadProducts();
-    $(document).on('click', '.category-button', function() {
-        var selectedCategory = $(this).data('category');
-        filterProducts(selectedCategory);
-    });
-
     // Klick-Event für "In den Warenkorb legen" Button
     $(document).on('click', '.add-button', function() {
         var productId = $(this).data('product-id');
@@ -37,55 +30,23 @@ $(document).ready(function() {
         var action = $(this).hasClass('remove') ? 'remove' : 'decrease';
         modifyProductInCart(productId, action);
     });
-});
 
-var allProducts = [];
-
-function loadProducts() {
     $.ajax({
-        type: "GET",
-        url: "../json/products.json", // Pfad zur JSON-Datei
-        cache: false,
-        dataType: "json",
-        success: function(response) {
-            allProducts = response.productlist; // Speichere alle Produkte zur Filterung
-            filterProducts('all'); // Zeige standardmäßig alle Produkte an
-            console.log("Produkte geladen:", allProducts); // Debugging-Log
+        url: '../../Backend/config/show_product.php', // Pfad zur API
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log(data);
+            var products = data;
+            products.forEach(function(product) {
+                $('#output-area').append('<ul>' + product.name + ' - €' + product.price + '</ul>');
+            });
         },
-        error: function() {
-            displayError();
-            console.error("Fehler beim Laden der Produkte"); // Debugging-Log
+        error: function(xhr, status, error) {
+            console.error('Fehler beim Laden der Daten:', error);
         }
     });
-}
-
-
-function displayProducts(products) {
-    var outputArea = $('#output-area');
-    outputArea.empty();
-
-    products.forEach(function(product) { // Display all products
-        outputArea.append(
-            `<li class="product-item">
-                <div class="product-image">
-                    <img src="${product.image_url}" alt="${product.name}" class="product-img">
-                </div>
-                <div class="product-details">
-                    <div class="product-name">${product.name}</div>
-                    <div class="product-price">${product.price}€</div>
-                </div>
-                <button class="btn btn-primary d-inline-flex align-items-center add-button" type="button" data-product-id="${product.id}">In den Warenkorb legen</button>
-            </li>`);
-    });
-}
-
-function filterProducts(category) {
-    console.log("Filtering products for category:", category); // Debugging line
-    var filteredProducts = allProducts.filter(function(product) {
-        return category === "all" || product.category === category;
-    });
-    displayProducts(filteredProducts);
-}
+});
 
 function addProductToCart(productId) {
     var product = allProducts.find(function(p) {
