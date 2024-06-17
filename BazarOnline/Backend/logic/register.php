@@ -1,27 +1,35 @@
 <?php
-// Verbindung zur Datenbank herstellen
 require_once("../config/dbaccess.php");
 session_start();
 
-// Setze den Header für JSON-Antworten
 header('Content-Type: application/json');
 
 // Überprüfen, ob die Anfrage eine POST-Anfrage ist
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // JSON-Daten auslesen (alternativ können Sie hier auch $_POST verwenden)
-    $data = $_POST;
+    // Debugging: Rohdaten auslesen
+    $rawData = file_get_contents('php://input');
+    error_log("Rohdaten: " . $rawData); // Ausgabe der Rohdaten im PHP-Error-Log
 
-    // Variablen aus dem POST-Array extrahieren
-    $anrede = trim($data['anrede']);
-    $vorname = trim($data['vorname']);
-    $nachname = trim($data['nachname']);
-    $adresse = trim($data['adresse']);
-    $plz = trim($data['plz']);
-    $ort = trim($data['ort']);
-    $email = trim($data['email']);
-    $username = trim($data['username']);
-    $passwort = $data['passwort'];
-    $zahlungsinformation = trim($data['zahlungsinformation']);
+    // JSON-Daten auslesen
+    $data = json_decode($rawData, true);
+
+    // Sicherstellen, dass $data nicht null ist
+    if ($data === null) {
+        echo json_encode(['success' => false, 'message' => 'Ungültige JSON-Daten.']);
+        exit;
+    }
+
+    // Variablen aus dem $data Array extrahieren
+    $anrede = isset($data['anrede']) ? trim($data['anrede']) : null;
+    $vorname = isset($data['vorname']) ? trim($data['vorname']) : null;
+    $nachname = isset($data['nachname']) ? trim($data['nachname']) : null;
+    $adresse = isset($data['adresse']) ? trim($data['adresse']) : null;
+    $plz = isset($data['plz']) ? trim($data['plz']) : null;
+    $ort = isset($data['ort']) ? trim($data['ort']) : null;
+    $email = isset($data['email']) ? trim($data['email']) : null;
+    $username = isset($data['username']) ? trim($data['username']) : null;
+    $passwort = isset($data['passwort']) ? $data['passwort'] : null;
+    $zahlungsinformation = isset($data['zahlungsinformation']) ? trim($data['zahlungsinformation']) : null;
 
     // Validierung der Eingabefelder
     if (empty($anrede) || empty($vorname) || empty($nachname) || empty($adresse) || empty($plz) || empty($ort) || empty($email) || empty($username) || empty($passwort)) {
@@ -70,5 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verbindung schließen
     $stmt->close();
     $conn->close();
+} else {
+    echo json_encode(['success' => false, 'message' => 'Ungültige Anfragemethode.']);
 }
 ?>

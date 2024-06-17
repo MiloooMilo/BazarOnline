@@ -28,6 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
+
+        // Überprüfen, ob das Konto aktiv ist
+        if ($user['active'] == 0) {
+            echo json_encode(['success' => false, 'message' => 'Ihr Konto ist deaktiviert. Bitte kontaktieren Sie admin@bazaronline.at für weitere Informationen.']);
+            exit;
+        }
     
         if (password_verify($passwort, $user['passwort'])) {
             $_SESSION['loggedin'] = true;
@@ -52,6 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         echo json_encode(['success' => false, 'message' => 'Benutzername oder E-Mail-Adresse nicht gefunden']);
     }
-    
+
+    $stmt->close();
+    $conn->close();
 }
 ?>

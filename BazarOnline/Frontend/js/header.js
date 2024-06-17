@@ -26,7 +26,7 @@ function adjustHeader() {
         // Überprüfen, ob der Benutzer ein Admin ist und den Admin-Button nur hinzufügen, wenn er es ist
         if (isAdmin) {
             console.log("Benutzer ist Admin. Admin-Button wird hinzugefügt.");
-            const adminButton = '<li><a href="admin.html" class="nav-link px-2 text-danger">Admin</a></li>';
+            const adminButton = '<li><a href="../../Backend/config/admin.php" class="nav-link px-2 text-danger">Admin</a></li>';
             document.querySelector('.nav').insertAdjacentHTML('beforeend', adminButton);
         } else {
             console.log("Benutzer ist kein Admin.");

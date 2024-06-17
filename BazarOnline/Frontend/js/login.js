@@ -43,7 +43,7 @@ function loginprocess(event) {
             } else {
                 // Fehlermeldung anzeigen
                 console.error("Login fehlgeschlagen:", response.message);
-                alert(response.message);
+                alert(response.message); // Pop-up-Benachrichtigung mit der Fehlermeldung
             }
         },
         error: function(xhr, status, error) {

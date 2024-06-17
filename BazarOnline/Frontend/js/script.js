@@ -1,13 +1,3 @@
-function validateForm() {
-    var pass = document.forms["regForm"]["passwort"].value;
-    var confirmPass = document.forms["regForm"]["confirm_passwort"].value;
-    if (pass !== confirmPass) {
-        alert("Passwörter stimmen nicht überein!");
-        return false;
-    }
-    // Weitere Validierungen hier hinzufügen
-    return true;
-}
 
 var cart = []; // Initialisiere ein leeres Array für den Warenkorb
 

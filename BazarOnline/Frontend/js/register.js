@@ -24,15 +24,19 @@ function validateForm(event) {
         zahlungsinformation: document.getElementById('zahlungsinformation').value
     };
 
+    // Debugging: Konsolenausgabe der zu sendenden Daten
+    console.log("Gesendete Formulardaten:", JSON.stringify(formData));
+
     // JSON-Daten per AJAX senden
     $.ajax({
         type: "POST",
         url: "../../Backend/logic/register.php",
-        data: formData,
+        data: JSON.stringify(formData), // Sende das Objekt als JSON-String
+        contentType: "application/json; charset=utf-8", // Setze den richtigen Content-Type für JSON
         dataType: "json",
         success: function(response) {
             if (response.success) {
-                // Bei erfolgreicher Registrierung zur Erfolgsseite weiterleiten
+                // Bei erfolgreicher Registrierung zur Login-Seite weiterleiten
                 window.location.href = "../../Frontend/sites/login.html";
             } else {
                 // Fehlermeldung anzeigen
