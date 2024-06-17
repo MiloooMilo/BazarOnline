@@ -8,6 +8,9 @@ function validateForm() {
     // Weitere Validierungen hier hinzufügen
     return true;
 }
+
+var cart = []; // Initialisiere ein leeres Array für den Warenkorb
+
 $(document).ready(function() {
     console.log("Document ready - Start lade Header");
 
@@ -17,28 +20,72 @@ $(document).ready(function() {
         adjustHeader();
     });
 
-    // Event handler for "Add to Cart" button
-    $(document).on('click', '.add-button', function() {
-        var productId = $(this).data('product-id');
-        addProductToCart(productId);
-    });
-
-    // Event handlers for cart item actions (increase, decrease, remove)
-    $(document).on('click', '.remove, .decrease, .increase', function(e) {
-        e.preventDefault();
-        var productId = $(this).data('product-id');
-        var action = $(this).hasClass('remove') ? 'remove' : $(this).hasClass('decrease') ? 'decrease' : 'increase';
-        modifyProductInCart(productId, action);
-    });
-
     // Load products from the backend
     loadProducts();
+
+    // Event listener für die "In den Warenkorb legen" Buttons
+    $('#output-area').on('click', '.add-button', function() {
+        var productId = $(this).data('product-id');
+        addToCart(productId);
+    });
+
+    // Event listener für Warenkorb-Updates
+    $('#cart-area').on('click', '.remove-button', function() {
+        var productId = $(this).data('product-id');
+        updateCart(productId, 0, true); // Entfernt das Produkt aus dem Warenkorb
+    });
+
+    $('#cart-area').on('click', '.increase-button', function() {
+        var productId = $(this).data('product-id');
+        updateCart(productId, 1); // Erhöht die Menge um 1
+    });
+
+    $('#cart-area').on('click', '.decrease-button', function() {
+        var productId = $(this).data('product-id');
+        updateCart(productId, -1); // Verringert die Menge um 1
+    });
+
+    $('.category-button').click(function() {
+        var selectedCategory = $(this).data('category');
+        loadProducts(selectedCategory);
+    });
+
+    // Live-Suche während des Tippens
+    $('#search-input').on('input', function() {
+        var searchTerm = $(this).val();
+        if (searchTerm.length > 0) {
+            searchProducts(searchTerm);
+        } else {
+            $('#suggestions').empty();
+        }
+    });
+
+    // Suche bei Absenden des Formulars
+    $('#search-form').submit(function(e) {
+        e.preventDefault();
+        var searchTerm = $('#search-input').val();
+        if (searchTerm.length > 0) {
+            searchProducts(searchTerm, true); // Zeige das genaue Produkt bei Absenden
+        }
+    });
+
+    // Vorschlag auswählen und Produkt anzeigen
+    $('#suggestions').on('click', 'li', function() {
+        var productId = $(this).data('product-id');
+        var product = window.allProducts.find(p => p.id == productId);
+        if (product) {
+            displayProducts([product]); // Zeige nur das ausgewählte Produkt
+            $('#suggestions').empty(); // Vorschläge leeren
+            $('#search-input').val(product.name); // Suchfeld mit dem ausgewählten Namen füllen
+        }
+    });
 });
 
-function loadProducts() {
+function loadProducts(category = '') {
     $.ajax({
-        url: '../../Backend/config/show_product.php', 
+        url: '../../Backend/config/show_product.php',
         type: 'GET',
+        data: { category: category },
         dataType: 'json',
         success: function(data) {
             console.log("Products loaded:", data);
@@ -46,7 +93,7 @@ function loadProducts() {
             displayProducts(data);
         },
         error: function(xhr, status, error) {
-            console.error('Fehler beim Laden der Daten:', error);
+            console.error('Error loading data:', error);
             displayError();
         }
     });
@@ -57,7 +104,7 @@ function displayProducts(data) {
     outputArea.empty();
     data.forEach(function(product) {
         outputArea.append(
-            `<li class="product-item">
+            `<li class="product-item col">
                 <div class="product-image">
                     <img src="${product.url}" alt="${product.name}" class="product-img">
                 </div>
@@ -70,97 +117,88 @@ function displayProducts(data) {
     });
 }
 
-function addProductToCart(productId) {
-    // Ensure the global variable allProducts is populated
-    if (!window.allProducts) {
-        console.error("Produkte sind noch nicht geladen.");
-        return;
-    }
-
-    var product = window.allProducts.find(function(p) {
-        return p.id === productId;
-    });
-
+function addToCart(productId) {
+    var product = window.allProducts.find(p => p.id == productId);
     if (product) {
-        $.ajax({
-            type: "POST",
-            url: "../../Backend/config/add_to_cart.php",
-            data: { product: JSON.stringify(product) },
-            success: function(response) {
-                console.log("Produkt in den Warenkorb gelegt:", response);
-                updateCart();
-            },
-            error: function(xhr, status, error) {
-                console.error("Fehler beim Hinzufügen des Produkts zum Warenkorb:", error);
-            }
-        });
+        var existingProduct = cart.find(p => p.id == productId);
+        if (existingProduct) {
+            existingProduct.quantity += 1; // Erhöhe die Menge, wenn das Produkt bereits im Warenkorb ist
+        } else {
+            product.quantity = 1; // Setze die Menge auf 1, wenn das Produkt neu ist
+            cart.push(product);
+        }
+        console.log("Warenkorb:", cart);
+        renderCart();
     } else {
-        console.error("Produkt nicht gefunden für die ID:", productId);
+        console.error('Produkt nicht gefunden:', productId);
     }
 }
 
-function updateCart() {
-    $.ajax({
-        type: "GET",
-        url: "../../Backend/config/get_cart.php", 
-        dataType: "json",
-        success: function(response) {
-            console.log("Cart contents:", response);
-            var cartArea = $('#cart-area');
-            cartArea.empty();
-            var total = 0;
-            response.cart.forEach(function(product) {
-                var lineTotal = product.quantity * product.price;
-                total += lineTotal;
-
-                var actions = `
-                    <a href="#" class="increase" data-product-id="${product.id}"><i class="bi bi-plus-circle"></i></a>
-                    <a href="#" class="decrease" data-product-id="${product.id}"><i class="bi bi-dash-circle"></i></a>
-                    <a href="#" class="remove" data-product-id="${product.id}"><i class="bi bi-trash"></i></a>`;
-
-                cartArea.append(
-                    `<li class="cart-item">
-                        <div class="cart-product-image">
-                            <img src="${product.url}" alt="${product.name}" class="cart-img">
-                        </div>
-                        <div class="cart-product-details">
-                            <div class="cart-product-name">${product.name}</div>
-                            <div class="cart-product-quantity">Quantity: ${product.quantity}</div>
-                            <div class="cart-product-price">${lineTotal.toFixed(2)}€</div>
-                        </div>
-                        <div class="cart-product-actions">
-                            ${actions}
-                        </div>
-                    </li>`
-                );
-            });
-            $('#cart-total').html('<strong>Total: ' + total.toFixed(2) + '€</strong>');
-        },
-        error: function(xhr, status, error) {
-            console.error("Failed to get cart contents", xhr.responseText);
+function updateCart(productId, quantityChange, remove = false) {
+    var productIndex = cart.findIndex(p => p.id == productId);
+    if (productIndex > -1) {
+        var product = cart[productIndex];
+        
+        if (remove) {
+            product.quantity = 0; // Setze die Menge auf 0
+        } else {
+            product.quantity += quantityChange;
         }
-    });
+        
+        if (product.quantity <= 0) {
+            cart.splice(productIndex, 1); // Entferne das Produkt, wenn die Menge 0 oder weniger ist
+        }
+        
+        console.log("Warenkorb aktualisiert:", cart);
+        renderCart();
+    } else {
+        console.error('Produkt nicht im Warenkorb gefunden:', productId);
+    }
 }
 
-function modifyProductInCart(productId, action) {
-    $.ajax({
-        type: "POST",
-        url: "../../Backend/config/remove_from_cart.php",
-        data: JSON.stringify({ productId: productId, action: action }),
-        contentType: "application/json; charset=utf-8",
-        success: function(response) {
-            console.log("Product modified in cart:", response);
-            updateCart();
-        },
-        error: function(xhr, status, error) {
-            console.error("Failed to modify product in cart", xhr.responseText);
-        }
-    });
+function renderCart() {
+    var cartArea = $('#cart-area');
+    cartArea.empty();
+    if (cart.length === 0) {
+        cartArea.append('<p>Ihr Warenkorb ist leer.</p>');
+    } else {
+        cart.forEach(function(product) {
+            cartArea.append(
+                `<li class="cart-item list-group-item">
+                    <div class="cart-product_image"><img src="${product.url}" height="50px" alt="${product.name}" class="product-img"></div>
+                    <div class="cart-product-name">${product.name}</div>
+                    <div class="cart-product-quantity d-flex align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary decrease-button me-2" data-product-id="${product.id}">-</button>
+                        <span>${product.quantity}</span>
+                        <button class="btn btn-sm btn-outline-secondary increase-button ms-2" data-product-id="${product.id}">+</button>
+                    </div>
+                    <button class="btn btn-sm btn-danger remove-button ms-3" type="button" data-product-id="${product.id}">Entfernen</button>
+                </li>`);
+        });
+    }
 }
 
 function displayError() {
-    var outputArea = $('#output-area');
-    outputArea.html('Failed to get data');
-    outputArea.addClass('error-message');
+    $('#output-area').append('<p>Fehler beim Laden der Produkte. Bitte versuchen Sie es später erneut.</p>');
 }
 
+// Funktion für die Live-Suche
+function searchProducts(query, exactMatch = false) {
+    var results = window.allProducts.filter(function(product) {
+        if (exactMatch) {
+            return product.name.toLowerCase() === query.toLowerCase();
+        } else {
+            return product.name.toLowerCase().includes(query.toLowerCase());
+        }
+    });
+
+    if (exactMatch) {
+        displayProducts(results); // Zeige nur das exakte Produkt bei der Suche
+    } else {
+        var suggestions = $('#suggestions');
+        suggestions.empty();
+        results.forEach(function(product) {
+            suggestions.append(`<li class="suggestion-item list-group-item" data-product-id="${product.id}">${product.name}</li>`);
+        });
+    }
+}

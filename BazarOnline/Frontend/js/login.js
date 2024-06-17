@@ -27,6 +27,18 @@ function loginprocess(event) {
                 console.log("Login erfolgreich für Benutzer:", response.user.username);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', response.user.username);
+
+                // Überprüfen, ob der Benutzer ein Admin ist
+                console.log("Rolle des Benutzers:", response.user.rolle); // Hier sollte 'admin' stehen, wenn der Benutzer ein Admin ist
+                if (response.user.rolle === 'admin') {
+                    console.log("Benutzer ist Admin. Setze isAdmin in localStorage.");
+                    localStorage.setItem('isAdmin', 'true');
+                } else {
+                    console.log("Benutzer ist kein Admin. Entferne isAdmin aus localStorage.");
+                    localStorage.removeItem('isAdmin');
+                }
+
+                // Weiterleiten zur Startseite oder einer anderen Seite
                 window.location.href = "../../Frontend/sites/index.html";
             } else {
                 // Fehlermeldung anzeigen
