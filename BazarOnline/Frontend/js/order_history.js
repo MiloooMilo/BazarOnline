@@ -6,7 +6,7 @@ function loadOrderHistory() {
     // AJAX-Aufruf, um die Bestellhistorie zu laden
     $.ajax({
         type: "GET",
-        url: "../../Backend/logic/get_order_history.php",
+        url: "../../Backend/config/get_order_history.php",
         dataType: "json",
         success: function(response) {
             if (response.success) {
@@ -42,6 +42,6 @@ function loadOrderHistory() {
 }
 
 function printInvoice(orderId) {
-    // AJAX-Aufruf, um die Rechnungsdetails zu laden und zu drucken
+    // Öffne ein neues Fenster oder Tab mit der URL zur Druckseite
     window.open(`../../Backend/logic/print_invoice.php?order_id=${orderId}`, '_blank');
 }

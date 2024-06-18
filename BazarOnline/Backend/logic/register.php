@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $hashedPassword = password_hash($passwort, PASSWORD_DEFAULT);
 
     // Einfügen der Benutzerdaten in die Datenbank
-    $insertSql = "INSERT INTO user (anrede, vorname, nachname, adresse, plz, ort, email, username, passwort, zahlungsinformation, rolle) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user')";
+    $insertSql = "INSERT INTO user (anrede, vorname, nachname, adresse, plz, ort, email, username, passwort, zahlungsinformation, rolle, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', '1')";
     $stmt = $conn->prepare($insertSql);
     $stmt->bind_param("ssssisssss", $anrede, $vorname, $nachname, $adresse, $plz, $ort, $email, $username, $hashedPassword, $zahlungsinformation);
 
