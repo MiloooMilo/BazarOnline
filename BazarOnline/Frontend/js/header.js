@@ -41,9 +41,9 @@ function adjustHeader() {
                         Mein Konto
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="accountDropdown">
-                        <li><a class="dropdown-item" href="order_history.html"><i class="bi bi-basket3-fill me-2"></i>Bestellverlauf</a></li>
-                        <li><a class="dropdown-item" href="account.html"><i class="bi bi-person-circle me-2"></i>Kundenkonto verwalten</a></li>
-                        <li><a class="dropdown-item" href="payment.html"><i class="bi bi-credit-card-2-back-fill me-2"></i>Zahlungsmöglichkeit hinzufügen</a></li>
+                        <li><a class="dropdown-item" href="../../Frontend/sites/order_history.html"><i class="bi bi-basket3-fill me-2"></i>Bestellverlauf</a></li>
+                        <li><a class="dropdown-item" href="../../Frontend/sites/account.html"><i class="bi bi-person-circle me-2"></i>Kundenkonto verwalten</a></li>
+                        <li><a class="dropdown-item" href="../../Frontend/sites/payment.html"><i class="bi bi-credit-card-2-back-fill me-2"></i>Zahlungsmöglichkeit hinzufügen</a></li>
                     </ul>
                     <button class="btn btn-outline-danger ms-2" id="logoutButton">Logout</button>
                 </div>
