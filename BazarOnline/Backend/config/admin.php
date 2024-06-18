@@ -2,8 +2,6 @@
 require_once("../config/dbaccess.php");
 session_start();
 
-
-
 // Hilfsfunktionen für verschiedene Verwaltungsaufgaben
 
 // Funktion zum Hinzufügen eines Produkts
@@ -12,15 +10,6 @@ function addProduct($name, $description, $rating, $price, $imageUrl, $category) 
     $sql = "INSERT INTO product (name, description, rating, price, url, category) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssidss", $name, $description, $rating, $price, $imageUrl, $category);
-    return $stmt->execute();
-}
-
-// Funktion zum Bearbeiten eines Produkts
-function editProduct($id, $name, $description, $rating, $price, $imageUrl, $category) {
-    global $conn;
-    $sql = "UPDATE product SET name=?, description=?, rating=?, price=?, url=?, category=? WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssidssi", $name, $description, $rating, $price, $imageUrl, $category, $id);
     return $stmt->execute();
 }
 
@@ -83,7 +72,7 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
     </style>
 </head>
 <body>
-<header class="header" id="header-site"></header>>
+<header class="header" id="header-site"></header>
     <div class="container">
         <h1>Admin Panel</h1>
         
@@ -237,10 +226,8 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
     </div>
 
     <script>
-        // Funktionen für Produktverwaltung
         function editProduct(id) {
-            // Hier könnte ein Modal zum Bearbeiten eines Produkts geöffnet werden
-            alert('Produkt bearbeiten: ' + id);
+            window.location.href = '../../Frontend/sites/edit_product.html?id=' + id;
         }
 
         function deleteProduct(id) {
@@ -257,7 +244,6 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
             }
         }
 
-        // Funktionen für Kundenverwaltung
         function deactivateCustomer(id) {
             if (confirm('Möchten Sie diesen Kunden wirklich deaktivieren?')) {
                 $.ajax({
@@ -274,14 +260,12 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
 
         function viewCustomerOrders(id) {
             alert('Bestelldetails für Kunde: ' + id);
-            // Hier könnte eine Seite oder ein Modal geöffnet werden, das die Bestelldetails anzeigt
         }
 
-        // Formulare senden
         $('#add-product-form').submit(function(event) {
             event.preventDefault();
-            var formData = $(this).serialize(); // Serialisiert alle Formulardaten
-            formData += '&action=addProduct'; // Fügt die Aktion zum Formulardaten-String hinzu
+            var formData = $(this).serialize();
+            formData += '&action=addProduct';
             $.ajax({
                 type: "POST",
                 url: "admin.php",
@@ -312,8 +296,6 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
 </html>
 
 <?php
-// Handling der AJAX-Anfragen
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'] ?? '';
 

@@ -3,7 +3,7 @@ $(document).ready(function() {
 
     // Überprüfen, ob der Header bereits geladen wurde
     if (!$('#header-site').hasClass('loaded')) {
-        $('#header-site').load("header.html", function() {
+        $('#header-site').load("../../Frontend/sites/header.html", function() {
             console.log("Header geladen, rufe adjustHeader auf");
             adjustHeader();
             $('#header-site').addClass('loaded'); // Markiere den Header als geladen
