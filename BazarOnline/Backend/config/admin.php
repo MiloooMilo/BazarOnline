@@ -83,7 +83,7 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
     </style>
 </head>
 <body>
-<header class="header" id="header-site"></header>>
+<header class="header" id="header-site"></header>
     <div class="container">
         <h1>Admin Panel</h1>
         
