@@ -47,9 +47,13 @@
                 <label for="ort" class="form-label">Ort</label>
                 <input type="text" class="form-control" id="ort" name="ort">
             </div>
-            <button type="button" class="btn btn-primary" onclick="updateAccount()">Speichern</button>
+            <div class="mb-3">
+                <label for="current-password" class="form-label">Aktuelles Passwort</label>
+                <input type="password" class="form-control" id="current-password" name="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Profil speichern</button>
         </form>
     </div>
-    <script src="../js/account.js" defer></script>
+    <script src="../js/edit_profile.js" defer></script>
 </body>
 </html>

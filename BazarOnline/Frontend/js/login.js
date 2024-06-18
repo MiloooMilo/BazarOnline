@@ -1,49 +1,60 @@
 function loginprocess(event) {
-    event.preventDefault(); // Verhindert das Standardverhalten des Formulars
+    event.preventDefault(); // Prevents the default form behavior
 
-    // Erfassen der Formulardaten
+    // Capture form data
     var usernameEmail = document.getElementById("floatingInput").value;
     var password = document.getElementById("floatingPassword").value;
+    var rememberMe = document.getElementById("flexCheckDefault").checked;
 
-    // Konsolenausgabe zur Überprüfung der Eingabedaten
-    console.log("Anmeldeversuch mit E-Mail/Benutzername:", usernameEmail, "und Passwort:", password);
+    // Log data to the console for verification
+    console.log("Login attempt with Email/Username:", usernameEmail, "and Password:", password, "Remember Me:", rememberMe);
 
     var formData = {
         username_email: usernameEmail,
-        passwort: password
+        passwort: password,
+        remember_me: rememberMe
     };
 
-    // JSON-Daten per AJAX senden
+    // Send JSON data via AJAX
     $.ajax({
         type: "POST",
         url: "../../Backend/logic/login.php",
-        data: JSON.stringify(formData), // Sende das Objekt als JSON-String
-        contentType: "application/json; charset=utf-8", // Setze den richtigen Content-Type für JSON
-        dataType: "json", // Erwarte JSON-Antwort vom Server
+        data: JSON.stringify(formData), // Send the object as a JSON string
+        contentType: "application/json; charset=utf-8", // Set the correct content type for JSON
+        dataType: "json", // Expect JSON response from server
         success: function(response) {
-            console.log("Antwort vom Server:", response);
+            console.log("Response from server:", response);
             if (response.success) {
-                // Bei erfolgreicher Anmeldung den Status speichern und weiterleiten
-                console.log("Login erfolgreich für Benutzer:", response.user.username);
+                // On successful login, save status and redirect
+                console.log("Login successful for user:", response.user.username);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', response.user.username);
 
-                // Überprüfen, ob der Benutzer ein Admin ist
-                console.log("Rolle des Benutzers:", response.user.rolle); // Hier sollte 'admin' stehen, wenn der Benutzer ein Admin ist
+                // Check if user is an admin
+                console.log("User role:", response.user.rolle); // Should be 'admin' if user is an admin
                 if (response.user.rolle === 'admin') {
-                    console.log("Benutzer ist Admin. Setze isAdmin in localStorage.");
+                    console.log("User is admin. Setting isAdmin in localStorage.");
                     localStorage.setItem('isAdmin', 'true');
                 } else {
-                    console.log("Benutzer ist kein Admin. Entferne isAdmin aus localStorage.");
+                    console.log("User is not admin. Removing isAdmin from localStorage.");
                     localStorage.removeItem('isAdmin');
                 }
 
-                // Weiterleiten zur Startseite oder einer anderen Seite
+                // Set or clear cookies based on Remember Me checkbox
+                if (rememberMe) {
+                    setCookie("username_email", usernameEmail, 30);
+                    setCookie("passwort", password, 30);
+                } else {
+                    setCookie("username_email", "", -1);
+                    setCookie("passwort", "", -1);
+                }
+
+                // Redirect to homepage or another page
                 window.location.href = "../../Frontend/sites/index.html";
             } else {
-                // Fehlermeldung anzeigen
-                console.error("Login fehlgeschlagen:", response.message);
-                alert(response.message); // Pop-up-Benachrichtigung mit der Fehlermeldung
+                // Display error message
+                console.error("Login failed:", response.message);
+                alert(response.message); // Pop-up notification with the error message
             }
         },
         error: function(xhr, status, error) {
@@ -54,4 +65,34 @@ function loginprocess(event) {
     });
 
     return false;
+}
+
+$(document).ready(function() {
+    // Check if cookies are set
+    if (getCookie('username_email') && getCookie('passwort')) {
+        $('#floatingInput').val(getCookie('username_email'));
+        $('#floatingPassword').val(getCookie('passwort'));
+        $('#flexCheckDefault').prop('checked', true);
+    }
+});
+
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
