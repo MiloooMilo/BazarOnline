@@ -22,13 +22,7 @@ function loadOrderHistory() {
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title">Gesamtbetrag: ${order.total_amount}€</h5>
-                                <ul class="list-group">
-                                    ${order.items.map(item => `
-                                        <li class="list-group-item">
-                                            ${item.product_name} - ${item.quantity} x ${item.price}€
-                                        </li>
-                                    `).join('')}
-                                </ul>
+                                
                             </div>
                         </div>
                     `;

@@ -31,6 +31,14 @@ function deactivateCustomer($id) {
     return $stmt->execute();
 }
 
+function activateCustomer($id) {
+    global $conn;
+    $sql = "UPDATE user SET active=1 WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    return $stmt->execute();
+}
+
 // Funktion zum Erstellen eines Gutscheins
 function generateCoupon($value, $expiryDate) {
     global $conn;
@@ -169,6 +177,8 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
                         <td>
                             <button class="btn btn-info btn-sm" onclick="viewCustomerOrders(<?php echo $customer['id']; ?>)">Bestellungen ansehen</button>
                             <button class="btn btn-danger btn-sm" onclick="deactivateCustomer(<?php echo $customer['id']; ?>)">Deaktivieren</button>
+                            <button class="btn btn-success btn-sm" onclick="activateCustomer(<?php echo $customer['id']; ?>)">Akktivieren</button>
+
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -252,6 +262,20 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
                     data: { action: 'deactivateCustomer', id: id },
                     success: function(response) {
                         alert('Kunde deaktiviert.');
+                        location.reload();
+                    }
+                });
+            }
+        }
+
+        function activateCustomer(id) {
+            if (confirm('Möchten Sie diesen Kunden wirklich aktivieren?')) {
+                $.ajax({
+                    type: "POST",
+                    url: "admin.php",
+                    data: { action: 'activateCustomer', id: id },
+                    success: function(response) {
+                        alert('Kunde aktiviert.');
                         location.reload();
                     }
                 });
@@ -345,6 +369,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['success' => true, 'message' => 'Kunde erfolgreich deaktiviert.']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Fehler beim Deaktivieren des Kunden.']);
+        }
+    }
+    if ($action === 'activateCustomer') {
+        $id = $_POST['id'] ?? 1;
+        if (activateCustomer($id)) {
+            echo json_encode(['success' => true, 'message' => 'Kunde erfolgreich aktiviert.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Fehler beim Aktivieren des Kunden.']);
         }
     }
 
