@@ -11,26 +11,34 @@ function loadOrderHistory() {
         success: function(response) {
             if (response.success) {
                 // Bestellhistorie anzeigen
-                let orderHistory = $('#order-history');
-                orderHistory.empty();
-                response.orders.forEach(order => {
-                    let orderElement = `
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                Bestellung #${order.order_id} - ${order.order_date}
-                                <button class="btn btn-sm btn-outline-primary float-end" onclick="printInvoice(${order.order_id})">Rechnung drucken</button>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">Gesamtbetrag: ${order.total_amount}€</h5>
-                                
-                            </div>
-                        </div>
-                    `;
-                    orderHistory.append(orderElement);
+                var orders = response.orders;
+                var ordersHTML = "<table class='order-table'>";
+                ordersHTML += "<tr><th>Bestellnummer</th><th>Datum</th><th>Gesamtbetrag</th><th>Rechnung</th></tr>";
+
+                $.each(orders, function(index, order) {
+                    ordersHTML += "<tr>";
+                    ordersHTML += "<td>" + order.order_id + "</td>";
+                    ordersHTML += "<td>" + order.order_date + "</td>";
+                    ordersHTML += "<td>€" + order.total_amount + "</td>";
+
+
+
+                    // Hier wird angenommen, dass es eine Liste von Produkten in der Bestellung gibt
+
+
+
+                    ordersHTML += "<td><a href='../../Backend/businesslogic/generatePDF.php?order_id=" + order.order_id + "' class='invoice-link' data-orderid='" + order.order_id + "'>Rechnung einsehen</a></td>";
+                    ordersHTML += "</tr>";
                 });
+
+                ordersHTML += "</table>";
+                $('#orderHistory').html(ordersHTML); // Hier wird der generierte HTML-Inhalt eingefügt
             } else {
                 alert('Fehler beim Laden der Bestellhistorie.');
             }
+        },
+        error: function() {
+            alert('Ein Fehler ist bei der Kommunikation mit dem Server aufgetreten.');
         }
     });
 }

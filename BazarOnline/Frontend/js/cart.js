@@ -30,7 +30,7 @@ $(document).ready(function() {
     $('#checkout-button').click(function() {
         if (!isUserLoggedIn()) {
             alert("Bitte loggen Sie sich ein, um die Bestellung abzuschließen.");
-            window.location.href = "../../Frontend/sites/register.html"; // Weiterleiten zur Registrierungsseite
+            window.location.href = "../../Frontend/sites/login.html"; // Weiterleiten zur Registrierungsseite
             return;
         }
         showPaymentOptions();

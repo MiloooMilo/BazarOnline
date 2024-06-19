@@ -2,6 +2,9 @@
 require_once("../config/dbaccess.php");
 session_start();
 
+// Überprüfen, ob der Benutzer ein Admin ist
+
+
 // Hilfsfunktionen für verschiedene Verwaltungsaufgaben
 
 // Funktion zum Hinzufügen eines Produkts
@@ -57,6 +60,22 @@ $customers = $conn->query("SELECT * FROM user WHERE rolle='user'")->fetch_all(MY
 
 // Gutscheine anzeigen
 $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
+
+// Admin: Bestellungen anzeigen
+function getCustomerOrders($customer_id) {
+    global $conn;
+    $sql = "SELECT id AS order_id, datum AS order_date, preis AS total_amount, status FROM orders WHERE userid = ? ORDER BY datum DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('i', $customer_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $orders = [];
+    while ($row = $result->fetch_assoc()) {
+        $orders[] = $row;
+    }
+    return $orders;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -177,8 +196,7 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
                         <td>
                             <button class="btn btn-info btn-sm" onclick="viewCustomerOrders(<?php echo $customer['id']; ?>)">Bestellungen ansehen</button>
                             <button class="btn btn-danger btn-sm" onclick="deactivateCustomer(<?php echo $customer['id']; ?>)">Deaktivieren</button>
-                            <button class="btn btn-success btn-sm" onclick="activateCustomer(<?php echo $customer['id']; ?>)">Akktivieren</button>
-
+                            <button class="btn btn-success btn-sm" onclick="activateCustomer(<?php echo $customer['id']; ?>)">Aktivieren</button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -233,6 +251,13 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
                 </tbody>
             </table>
         </section>
+
+        <!-- Bestellhistorie anzeigen -->
+        <section id="order-history" style="display:none;">
+            <h2>Bestellhistorie des Kunden</h2>
+            <div id="orderHistory"></div>
+            <button class="btn btn-secondary" onclick="hideOrderHistory()">Zurück</button>
+        </section>
     </div>
 
     <script>
@@ -283,8 +308,49 @@ $coupons = $conn->query("SELECT * FROM coupon")->fetch_all(MYSQLI_ASSOC);
         }
 
         function viewCustomerOrders(id) {
-            alert('Bestelldetails für Kunde: ' + id);
-        }
+        // Verstecke die Kundenverwaltung und zeige den Bereich für die Bestellhistorie an
+        $('#customer-management').hide();
+        $('#order-history').show();
+
+        // AJAX-Aufruf, um die Bestellhistorie des Kunden zu laden
+        $.ajax({
+            type: "GET",
+            url: "admin.php",
+            data: { action: 'getCustomerOrders', customer_id: id },
+            dataType: "json",
+            success: function(response) {
+                if (response.success) {
+                    // Bestellhistorie anzeigen
+                    var orders = response.orders;
+                    var ordersHTML = "<table class='table table-bordered'>";
+                    ordersHTML += "<tr><th>Bestellnummer</th><th>Datum</th><th>Gesamtbetrag</th><th>Status</th><th>Rechnung</th></tr>";
+
+                    $.each(orders, function(index, order) {
+                        ordersHTML += "<tr>";
+                        ordersHTML += "<td>" + order.order_id + "</td>";
+                        ordersHTML += "<td>" + order.order_date + "</td>";
+                        ordersHTML += "<td>€" + order.total_amount + "</td>";
+                        ordersHTML += "<td>" + order.status + "</td>";
+                        ordersHTML += "<td><a href='../../Backend/businesslogic/generatePDF.php?order_id=" + order.order_id + "' class='invoice-link' data-orderid='" + order.order_id + "'>Rechnung einsehen</a></td>";
+                        ordersHTML += "</tr>";
+                    });
+
+                    ordersHTML += "</table>";
+                    $('#orderHistory').html(ordersHTML); // Hier wird der generierte HTML-Inhalt eingefügt
+                } else {
+                    alert('Fehler beim Laden der Bestellhistorie: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Ein Fehler ist bei der Kommunikation mit dem Server aufgetreten.');
+            }
+        });
+    }
+
+    function hideOrderHistory() {
+        $('#order-history').hide();
+        $('#customer-management').show();
+    }
 
         $('#add-product-form').submit(function(event) {
             event.preventDefault();
@@ -387,6 +453,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['success' => true, 'message' => 'Gutschein erfolgreich erstellt.']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Fehler beim Erstellen des Gutscheins.']);
+        }
+    }
+
+    if ($action === 'getCustomerOrders') {
+        $customer_id = $_GET['customer_id'] ?? 0;
+
+        if ($customer_id == 0) {
+            echo json_encode(['success' => false, 'message' => 'Ungültige Kunden-ID.']);
+            exit;
+        }
+
+        $orders = getCustomerOrders($customer_id);
+
+        if (!empty($orders)) {
+            echo json_encode(['success' => true, 'orders' => $orders]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Keine Bestellungen gefunden.']);
         }
     }
 }

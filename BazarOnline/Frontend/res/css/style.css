@@ -171,3 +171,29 @@ li {
 .error-message {
   color: red;
 }
+
+.order-table, .product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-table th, .order-table td, .product-table th, .product-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.order-table th {
+  background-color: #f2f2f2;
+  text-align: left;
+}
+
+.product-table th {
+  background-color: #f9f9f9;
+  text-align: left;
+}
+
+.invoice-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
