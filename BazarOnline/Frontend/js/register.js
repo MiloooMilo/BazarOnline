@@ -24,8 +24,6 @@ function validateForm(event) {
         zahlungsinformation: document.getElementById('zahlungsinformation').value
     };
 
-    // Debugging: Konsolenausgabe der zu sendenden Daten
-    console.log("Gesendete Formulardaten:", JSON.stringify(formData));
 
     // JSON-Daten per AJAX senden
     $.ajax({

@@ -1,13 +1,10 @@
 function loginprocess(event) {
-    event.preventDefault(); // Prevents the default form behavior
+    event.preventDefault(); // Verhindert das Standardverhalten des Formulars
 
-    // Capture form data
+    // Erfasst die Formulardaten
     var usernameEmail = document.getElementById("floatingInput").value;
     var password = document.getElementById("floatingPassword").value;
     var rememberMe = document.getElementById("flexCheckDefault").checked;
-
-    // Log data to the console for verification
-    console.log("Login attempt with Email/Username:", usernameEmail, "and Password:", password, "Remember Me:", rememberMe);
 
     var formData = {
         username_email: usernameEmail,
@@ -15,32 +12,27 @@ function loginprocess(event) {
         remember_me: rememberMe
     };
 
-    // Send JSON data via AJAX
+    // Sendet JSON-Daten per AJAX
     $.ajax({
         type: "POST",
         url: "../../Backend/logic/login.php",
-        data: JSON.stringify(formData), // Send the object as a JSON string
-        contentType: "application/json; charset=utf-8", // Set the correct content type for JSON
-        dataType: "json", // Expect JSON response from server
+        data: JSON.stringify(formData), // Sendet das Objekt als JSON-String
+        contentType: "application/json; charset=utf-8", // Setzt den richtigen Content-Type für JSON
+        dataType: "json", // Erwartet JSON-Antwort vom Server
         success: function(response) {
-            console.log("Response from server:", response);
             if (response.success) {
-                // On successful login, save status and redirect
-                console.log("Login successful for user:", response.user.username);
+                // Bei erfolgreicher Anmeldung den Status speichern und weiterleiten
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', response.user.username);
 
-                // Check if user is an admin
-                console.log("User role:", response.user.rolle); // Should be 'admin' if user is an admin
+                // Überprüft, ob der Benutzer ein Admin ist
                 if (response.user.rolle === 'admin') {
-                    console.log("User is admin. Setting isAdmin in localStorage.");
                     localStorage.setItem('isAdmin', 'true');
                 } else {
-                    console.log("User is not admin. Removing isAdmin from localStorage.");
                     localStorage.removeItem('isAdmin');
                 }
 
-                // Set or clear cookies based on Remember Me checkbox
+                // Setzt oder löscht Cookies basierend auf der Remember Me Checkbox
                 if (rememberMe) {
                     setCookie("username_email", usernameEmail, 30);
                     setCookie("passwort", password, 30);
@@ -49,17 +41,14 @@ function loginprocess(event) {
                     setCookie("passwort", "", -1);
                 }
 
-                // Redirect to homepage or another page
+                // Weiterleitung zur Startseite oder einer anderen Seite
                 window.location.href = "../../Frontend/sites/index.html";
             } else {
-                // Display error message
-                console.error("Login failed:", response.message);
-                alert(response.message); // Pop-up notification with the error message
+                // Fehlermeldung anzeigen
+                alert(response.message); // Pop-up-Benachrichtigung mit der Fehlermeldung
             }
         },
         error: function(xhr, status, error) {
-            console.error('Fehler bei der Anmeldung:', error);
-            console.error('Details:', xhr.responseText);
             alert("Es gab einen Fehler bei der Anmeldung. Bitte versuchen Sie es erneut.");
         }
     });
@@ -68,7 +57,7 @@ function loginprocess(event) {
 }
 
 $(document).ready(function() {
-    // Check if cookies are set
+    // Überprüft, ob Cookies gesetzt sind
     if (getCookie('username_email') && getCookie('passwort')) {
         $('#floatingInput').val(getCookie('username_email'));
         $('#floatingPassword').val(getCookie('passwort'));
@@ -77,6 +66,7 @@ $(document).ready(function() {
 });
 
 function setCookie(name, value, days) {
+    // Funktion zum Setzen eines Cookies
     var expires = "";
     if (days) {
         var date = new Date();
@@ -87,6 +77,7 @@ function setCookie(name, value, days) {
 }
 
 function getCookie(name) {
+    // Funktion zum Abrufen eines Cookies
     var nameEQ = name + "=";
     var ca = document.cookie.split(';');
     for (var i = 0; i < ca.length; i++) {
