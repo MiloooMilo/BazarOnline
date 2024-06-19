@@ -54,6 +54,7 @@ function adjustHeader() {
                 localStorage.removeItem('isLoggedIn');
                 localStorage.removeItem('isAdmin');
                 localStorage.removeItem('username');
+                localStorage.removeItem('cart'); // Warenkorb leeren
                 console.log("Benutzer ausgeloggt");
                 window.location.href = '../../Frontend/sites/index.html';
             });
