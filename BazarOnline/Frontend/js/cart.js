@@ -5,37 +5,32 @@ $(document).ready(function() {
     // Hinzufügen von Produkten zum Warenkorb
     $('#output-area').on('click', '.add-button', function() {
         var productId = $(this).data('product-id');
-        console.log('Produkt zur Bestellung hinzufügen, Produkt-ID:', productId);
         var product = window.allProducts.find(p => p.id == productId);
-        console.log('Produktdetails:', product);
         addToCart(product);
     });
 
     // Aktualisieren der Menge im Warenkorb
     $('#cart-items').on('click', '.increase-qty', function() {
         var productId = $(this).data('product-id');
-        console.log('Erhöhen der Menge für Produkt-ID:', productId);
         updateCartItem(productId, 1);
     });
 
     $('#cart-items').on('click', '.decrease-qty', function() {
         var productId = $(this).data('product-id');
-        console.log('Verringern der Menge für Produkt-ID:', productId);
         updateCartItem(productId, -1);
     });
 
     // Entfernen eines Produkts aus dem Warenkorb
     $('#cart-items').on('click', '.kill', function() {
         var productId = $(this).data('product-id');
-        console.log('Entfernen des Produkts aus dem Warenkorb, Produkt-ID:', productId);
         removeCartItem(productId);
     });
 
     // Bestellvorgang einleiten
     $('#checkout-button').click(function() {
-        console.log('Checkout-Button geklickt');
         if (!isUserLoggedIn()) {
             alert("Bitte loggen Sie sich ein, um die Bestellung abzuschließen.");
+            window.location.href = "../../Frontend/sites/register.html"; // Weiterleiten zur Registrierungsseite
             return;
         }
         showPaymentOptions();
@@ -44,23 +39,19 @@ $(document).ready(function() {
 
 function isUserLoggedIn() {
     // Überprüfen des Benutzer-Login-Status
-    var loggedIn = true; // Platzhalter-Logik für tatsächliche Login-Überprüfung
-    console.log('Benutzer eingeloggt:', loggedIn);
+    var loggedIn = localStorage.getItem('isLoggedIn') === 'true';
     return loggedIn;
 }
 
 function addToCart(product) {
     var cart = JSON.parse(localStorage.getItem('cart')) || [];
     var existingProduct = cart.find(p => p.id == product.id);
-    console.log('Aktueller Warenkorb:', cart);
 
     if (existingProduct) {
         existingProduct.quantity += 1;
-        console.log('Menge des vorhandenen Produkts erhöht:', existingProduct);
     } else {
         product.quantity = 1;
         cart.push(product);
-        console.log('Produkt neu hinzugefügt:', product);
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -71,7 +62,6 @@ function addToCart(product) {
 function updateCartCount() {
     var cart = JSON.parse(localStorage.getItem('cart')) || [];
     var totalItems = cart.reduce((total, product) => total + product.quantity, 0);
-    console.log('Gesamtanzahl der Artikel im Warenkorb:', totalItems);
     $('#cart-count').text(totalItems);
 }
 
@@ -84,7 +74,6 @@ function displayCart() {
     cart.forEach(function(product) {
         var itemTotal = product.price * product.quantity;
         totalPrice += itemTotal;
-        console.log('Produkt im Warenkorb:', product, 'Einzelpreis:', product.price, 'Gesamtpreis für dieses Produkt:', itemTotal);
         cartItems.append(
             `<li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
@@ -100,7 +89,6 @@ function displayCart() {
             </li>`);
     });
 
-    console.log('Gesamtpreis des Warenkorbs:', totalPrice);
     $('#total-price').text(totalPrice);
 }
 
@@ -110,10 +98,8 @@ function updateCartItem(productId, change) {
 
     if (product) {
         product.quantity += change;
-        console.log('Aktualisierte Menge des Produkts:', product);
         if (product.quantity <= 0) {
             cart = cart.filter(p => p.id != productId);
-            console.log('Produkt entfernt aufgrund Menge <= 0:', productId);
         }
     }
 
@@ -124,22 +110,13 @@ function updateCartItem(productId, change) {
 
 function removeCartItem(productId) {
     var cart = JSON.parse(localStorage.getItem('cart')) || [];
-    var product = cart.find(p => p.id == productId);
-
-    if (product) {
-        product.quantity = 0;
-        cart = cart.filter(p => p.id != productId);
-        console.log('Produkt vollständig aus dem Warenkorb entfernt:', productId);
-    }
-
+    cart = cart.filter(p => p.id != productId);
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     displayCart();
 }
 
 function showPaymentOptions() {
-    console.log('Zahlungsoptionen anzeigen');
-    // Erzeuge ein Formular zur Auswahl der Zahlungsmethode und Eingabe eines Gutscheins
     var paymentOptions = `
         <div class="payment-options">
             <h4>Zahlungsmethode wählen</h4>
@@ -156,9 +133,7 @@ function showPaymentOptions() {
     `;
     $('#cart-items').after(paymentOptions);
 
-    // Event-Listener für Zahlungsmethode
     $('#payment-method').change(function() {
-        console.log('Zahlungsmethode geändert:', $(this).val());
         if ($(this).val() === 'voucher') {
             $('#voucher-field').show();
         } else {
@@ -166,9 +141,7 @@ function showPaymentOptions() {
         }
     });
 
-    // Event-Listener für Bestellbestätigung
     $('#confirm-order').click(function() {
-        console.log('Bestellbestätigung geklickt');
         confirmOrder();
     });
 }
@@ -177,63 +150,51 @@ function confirmOrder() {
     var cart = JSON.parse(localStorage.getItem('cart')) || [];
     var paymentMethod = $('#payment-method').val();
     var voucherCode = $('#voucher-code').val();
-    console.log('Bestellung wird bestätigt mit:', { cart, paymentMethod, voucherCode });
 
     if (cart.length === 0) {
         alert("Ihr Warenkorb ist leer.");
         return;
     }
 
-    // Dummy-Logik zur Gutscheinverarbeitung
     var discount = 0;
     var voucherUsed = false;
     if (paymentMethod === 'voucher' && voucherCode === 'VALIDCODE') {
         discount = 10; // Beispiel: Abzug von 10€
         voucherUsed = true;
-        console.log('Gutscheinwert angewendet:', discount);
     }
 
-    // Gesamtsumme berechnen
     var totalPrice = cart.reduce((total, product) => total + (product.price * product.quantity), 0);
     var amountToPay = totalPrice - discount;
 
-    if (amountToPay < 0) amountToPay = 0; // Negativer Preis ist nicht möglich
-    console.log('Gesamtpreis nach Rabatt:', amountToPay);
+    if (amountToPay < 0) amountToPay = 0;
 
-    // Überprüfen, ob eine Zahlungsmethode erforderlich ist
     if (amountToPay > 0 && (paymentMethod === 'voucher' || paymentMethod === '')) {
         alert("Bitte wählen Sie eine Zahlungsmethode, da der Gutscheinwert nicht ausreicht.");
         return;
     }
 
-    // AJAX-Anfrage zur Bestellverarbeitung
     $.ajax({
         url: '../../Backend/config/process_order.php',
         method: 'POST',
         data: {
             cart: JSON.stringify(cart),
-            paymentMethod: amountToPay > 0 ? paymentMethod : '', // Zahlungsmethode nur senden, wenn erforderlich
-            voucherCode: voucherUsed ? voucherCode : '', // Gutscheincode nur senden, wenn verwendet
+            paymentMethod: amountToPay > 0 ? paymentMethod : '',
+            voucherCode: voucherUsed ? voucherCode : '',
             totalPrice: totalPrice
         },
-        dataType: 'json', // Erwartet eine JSON-Antwort vom Server
+        dataType: 'json',
         success: function(response) {
-            console.log('Serverantwort:', response);
-
-            // Sicherstellen, dass die Antwort ein Objekt ist und `success` enthält
             if (response && response.success) {
                 alert("Ihre Bestellung wurde erfolgreich abgeschlossen.");
-                localStorage.removeItem('cart'); // Warenkorb leeren
+                localStorage.removeItem('cart');
                 updateCartCount();
                 displayCart();
             } else {
-                // Genaue Fehlermeldung anzeigen
                 var errorMsg = response && response.error ? response.error : "Unbekannter Fehler";
                 alert("Es gab ein Problem mit Ihrer Bestellung: " + errorMsg);
             }
         },
         error: function(xhr, status, error) {
-            console.error('AJAX-Fehler:', { status, error });
             alert("Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.");
         }
     });
