@@ -1,5 +1,4 @@
 
-var cart = []; // Initialisiere ein leeres Array für den Warenkorb
 
 $(document).ready(function() {
     console.log("Document ready - Start lade Header");
@@ -12,28 +11,6 @@ $(document).ready(function() {
 
     // Load products from the backend
     loadProducts();
-
-    // Event listener für die "In den Warenkorb legen" Buttons
-    $('#output-area').on('click', '.add-button', function() {
-        var productId = $(this).data('product-id');
-        addToCart(productId);
-    });
-
-    // Event listener für Warenkorb-Updates
-    $('#cart-area').on('click', '.remove-button', function() {
-        var productId = $(this).data('product-id');
-        updateCart(productId, 0, true); // Entfernt das Produkt aus dem Warenkorb
-    });
-
-    $('#cart-area').on('click', '.increase-button', function() {
-        var productId = $(this).data('product-id');
-        updateCart(productId, 1); // Erhöht die Menge um 1
-    });
-
-    $('#cart-area').on('click', '.decrease-button', function() {
-        var productId = $(this).data('product-id');
-        updateCart(productId, -1); // Verringert die Menge um 1
-    });
 
     $('.category-button').click(function() {
         var selectedCategory = $(this).data('category');
@@ -105,67 +82,6 @@ function displayProducts(data) {
                 <button class="btn btn-primary d-inline-flex align-items-center add-button" type="button" data-product-id="${product.id}">In den Warenkorb legen</button>
             </li>`);
     });
-}
-
-function addToCart(productId) {
-    var product = window.allProducts.find(p => p.id == productId);
-    if (product) {
-        var existingProduct = cart.find(p => p.id == productId);
-        if (existingProduct) {
-            existingProduct.quantity += 1; // Erhöhe die Menge, wenn das Produkt bereits im Warenkorb ist
-        } else {
-            product.quantity = 1; // Setze die Menge auf 1, wenn das Produkt neu ist
-            cart.push(product);
-        }
-        console.log("Warenkorb:", cart);
-        renderCart();
-    } else {
-        console.error('Produkt nicht gefunden:', productId);
-    }
-}
-
-function updateCart(productId, quantityChange, remove = false) {
-    var productIndex = cart.findIndex(p => p.id == productId);
-    if (productIndex > -1) {
-        var product = cart[productIndex];
-        
-        if (remove) {
-            product.quantity = 0; // Setze die Menge auf 0
-        } else {
-            product.quantity += quantityChange;
-        }
-        
-        if (product.quantity <= 0) {
-            cart.splice(productIndex, 1); // Entferne das Produkt, wenn die Menge 0 oder weniger ist
-        }
-        
-        console.log("Warenkorb aktualisiert:", cart);
-        renderCart();
-    } else {
-        console.error('Produkt nicht im Warenkorb gefunden:', productId);
-    }
-}
-
-function renderCart() {
-    var cartArea = $('#cart-area');
-    cartArea.empty();
-    if (cart.length === 0) {
-        cartArea.append('<p>Ihr Warenkorb ist leer.</p>');
-    } else {
-        cart.forEach(function(product) {
-            cartArea.append(
-                `<li class="cart-item list-group-item">
-                    <div class="cart-product_image"><img src="${product.url}" height="50px" alt="${product.name}" class="product-img"></div>
-                    <div class="cart-product-name">${product.name}</div>
-                    <div class="cart-product-quantity d-flex align-items-center">
-                        <button class="btn btn-sm btn-outline-secondary decrease-button me-2" data-product-id="${product.id}">-</button>
-                        <span>${product.quantity}</span>
-                        <button class="btn btn-sm btn-outline-secondary increase-button ms-2" data-product-id="${product.id}">+</button>
-                    </div>
-                    <button class="btn btn-sm btn-danger remove-button ms-3" type="button" data-product-id="${product.id}">Entfernen</button>
-                </li>`);
-        });
-    }
 }
 
 function displayError() {

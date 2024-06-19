@@ -11,6 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <script src="../js/script.js"></script> <!-- Script für die Index-Seite -->
+    <script src="../js/cart.js" defer></script> <!-- Script für den Warenkorb -->
     <script src="../js/header.js"></script> <!-- Script für den Header -->
 </head>
 <body>
@@ -23,7 +24,7 @@
             <button class="btn btn-primary mx-1 mb-2 category-button" type="button" data-category="all">All</button>
             <button class="btn btn-primary mx-1 mb-2 category-button" type="button" data-category="Unterhaltungselektronik">Unterhaltungselektronik</button>
             <button class="btn btn-primary mx-1 mb-2 category-button" type="button" data-category="Sonstiges">Sonstiges</button>
-            
+
             <form class="search-form d-flex ms-auto" id="search-form">
                 <input type="text" id="search-input" name="q" class="form-control me-2" placeholder="Search..." aria-label="Search through site content" autocomplete="off">
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -33,8 +34,12 @@
 
         <ul id="output-area" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4"></ul>
 
-        <h2>Shopping Cart</h2>
-        <ul id="cart-area" class="list-group"></ul>
+        <!-- Cart section -->
+        <div class="cart-section mt-4">
+            <h3>Warenkorb <span id="cart-count" class="badge bg-secondary"></span></h3>
+            <ul id="cart-items" class="list-group"></ul>
+            <p>Total: <span id="total-price"></span>€</p>
+        </div>
     </div>
 </body>
 </html>
